@@ -88,9 +88,9 @@ def get_stock_list():
     s4 = get_zxb_stock_list()
     s5 = get_kcb_stock_list()
     s6 = get_b_stock_list()
-    s7 = get_index_list()
-    stock_list = itertools.chain(s1, s2, s3, s4, s5, s6, s7)
+    stock_list = itertools.chain(s1, s2, s3, s4, s5, s6)
     return stock_list
+
 
 def get_stock_list2():
     """
@@ -103,6 +103,32 @@ def get_stock_list2():
     s4 = get_zxb_stock_list(1)
     s5 = get_kcb_stock_list(1)
     s6 = get_b_stock_list(1)
-    s7 = get_index_list(1)
-    stock_list = itertools.chain(s1, s2, s3, s4, s5, s6, s7)
+    stock_list = itertools.chain(s1, s2, s3, s4, s5, s6)
     return stock_list
+
+def get_index_list2():
+    """
+    @API function,生成网易财经格式的stock_code
+    """
+    stock_list = get_index_list(1)
+    return stock_list
+
+
+def stock_code_decoding(stock_code:str):
+    if stock_code.startswith("'6") or stock_code.startswith("'83"):
+        stock_id = stock_code.replace("'", 'SH')
+    elif stock_code.startswith("'000") or stock_code.startswith("'002") or stock_code.startswith("'300"):
+        stock_id = stock_code.replace("'", 'SZ')
+    else:
+        stock_id = stock_code.replace("'", 'SH')
+    return stock_id
+
+
+def index_code_decoding(stock_code:str):
+    if stock_code.startswith("'9") or stock_code.startswith("'000"):
+        stock_id = stock_code.replace("'", 'SH')
+    elif stock_code.startswith("'399"):
+        stock_id = stock_code.replace("'", 'SZ')
+    else:
+        stock_id = stock_code.replace("'", 'SH')
+    return stock_id
