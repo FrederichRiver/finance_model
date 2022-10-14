@@ -7,6 +7,9 @@ from libutils.network import RandomHeader
 from lxml import etree
 from pandas import DataFrame
 from requests.models import HTTPError
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from libsql_utils.model.stock import get_formStock, formStockManager
 
 
 def get_html_object(url: str, HttpHeader: dict) -> etree.HTML:
@@ -34,34 +37,23 @@ def get_excel_object(url: str) -> DataFrame:
     return df
 
 
-class SpiderModel(object):
-    """
-    
-    """
-    def __init__(self) -> None:
-        # date format: YYYY-mm-dd
-        self._Today = datetime.date.today().strftime(TIME_FMT)
-        # date format: YYYYmmdd
-        self._today = datetime.date.today().strftime('%Y%m%d')
-        # self.TAB_STOCK_MANAGER = "stock_manager"
-        self._Header = RandomHeader()
-
-    @property
-    def httpHeader(self) -> dict:
-        return self._Header()
-
-    @property
-    def Today(self) -> str:
-        """
-        Format: 1983-01-22
-        """
-        self._Today = datetime.date.today().strftime(TIME_FMT)
-        return self._Today
-
-    @property
-    def today(self) -> str:
-        """
-        Format: 19830122
-        """
-        self._today = datetime.date.today().strftime('%Y%m%d')
-        return self._today
+def get_stock_data(session: Session, stock_code: str, kwindow=[5, 10, 20]) -> DataFrame:
+    col_name = ['trade_date', 'close', 'high', 'low', 'open', 'amplitude', 'volume', 'adjust']
+    formStock = get_formStock(stock_code)
+    query = select(
+        formStock.trade_date,
+        formStock.close_price,
+        formStock.high_price,
+        formStock.low_price,
+        formStock.open_price,
+        formStock.amplitude,
+        formStock.volume,
+        formStock.adjust_factor
+        )
+    result = session.execute(query).fetchmany(40)
+    df =  DataFrame(result, columns=col_name)
+    if df is not None:
+        df.set_index('trade_date', inplace=True)
+        for i in kwindow:
+            df[f"MA{i}"] = df['close'].rolling(i).mean()
+    return df
