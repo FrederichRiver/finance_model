@@ -132,3 +132,18 @@ def index_code_decoding(stock_code:str):
     else:
         stock_id = stock_code.replace("'", 'SH')
     return stock_id
+
+
+def read_stock_list():
+    from libsql_utils.engine import engine_init
+    from sqlalchemy.orm import Session
+    from sqlalchemy import select
+    from libsql_utils.model.stock import formStockManager
+    eng = engine_init(host='localhost', acc='root', pw='6414939', db='stock')
+    with Session(eng) as session:
+        query = select(formStockManager.stock_code, formStockManager.stock_code2)
+        result = session.execute(query).all()
+    stock_list = []
+    for item in result:
+        stock_list.append((item[0], item[1]))
+    return stock_list
