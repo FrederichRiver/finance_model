@@ -37,7 +37,7 @@ def get_excel_object(url: str) -> DataFrame:
     return df
 
 
-def get_stock_data(session: Session, stock_code: str, kwindow=[5, 10, 20]) -> DataFrame:
+def get_stock_data(session: Session, stock_code: str, k_len: int, kwindow=[5, 10, 20]) -> DataFrame:
     col_name = ['trade_date', 'close', 'high', 'low', 'open', 'amplitude', 'volume', 'adjust']
     formStock = get_formStock(stock_code)
     query = select(
@@ -50,9 +50,10 @@ def get_stock_data(session: Session, stock_code: str, kwindow=[5, 10, 20]) -> Da
         formStock.volume,
         formStock.adjust_factor
         )
-    result = session.execute(query).fetchmany(40)
+    result = session.execute(query).fetchmany(k_len)
     df =  DataFrame(result, columns=col_name)
-    if df is not None:
+    if not df.empty:
+        df['trade_date'] = pd.to_datetime(df['trade_date'])
         df.set_index('trade_date', inplace=True)
         for i in kwindow:
             df[f"MA{i}"] = df['close'].rolling(i).mean()
